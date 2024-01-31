@@ -1,60 +1,63 @@
-import java.nio.file.*;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.json.JSONObject;
+
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
-import java.util.Comparator;
+import java.util.List;
 
 public class test {
 
     public static void main(String[] args) {
-        String directoryPath = "/path/to/your/directory";
+        // Sample list of JSON strings
+        List<String> jsonList = List.of(
+                "{\"id\": 1, \"title\": \"Title 1\"}",
+                "{\"id\": 2, \"title\": \"Title 2\"}",
+                "{\"id\": 3, \"title\": \"Title 3\"}"
+        );
 
         try {
-            Path latestSubdirectory = getLatestSubdirectory(directoryPath);
-            System.out.println("Latest subdirectory: " + latestSubdirectory);
+            Workbook workbook = createExcelSheet(jsonList);
+            FileOutputStream fileOut = new FileOutputStream("output.xlsx");
+            workbook.write(fileOut);
+            fileOut.close();
+            workbook.close();
+            System.out.println("Excel sheet created successfully.");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static Path getLatestSubdirectory(String directoryPath) throws IOException {
-        Path directory = Paths.get(directoryPath);
+    private static Workbook createExcelSheet(List<String> jsonList) {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("JsonData");
 
-        // List all subdirectories
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory, Files::isDirectory)) {
-            return stream
-                    .map(subdirectory -> new Pair(subdirectory, getLastModifiedTime(subdirectory)))
-                    .max(Comparator.comparing(Pair::getModifiedTime))
-                    .map(Pair::getPath)
-                    .orElse(null);
-        }
-    }
-
-    private static FileTime getLastModifiedTime(Path path) {
-        try {
-            BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class);
-            return attrs.lastModifiedTime();
-        } catch (IOException e) {
-            throw new RuntimeException("Error getting last modified time", e);
-        }
-    }
-
-    // Helper class to hold a pair of Path and FileTime
-    private static class Pair {
-        private final Path path;
-        private final FileTime modifiedTime;
-
-        public Pair(Path path, FileTime modifiedTime) {
-            this.path = path;
-            this.modifiedTime = modifiedTime;
+        // Create header row
+        Row headerRow = sheet.createRow(0);
+        JSONObject firstObject = new JSONObject(jsonList.get(0));
+        int colIndex = 0;
+        for (String key : firstObject.keySet()) {
+            Cell cell = headerRow.createCell(colIndex++);
+            cell.setCellValue(key);
         }
 
-        public Path getPath() {
-            return path;
+        // Populate data rows
+        int rowIndex = 1;
+        for (String jsonString : jsonList) {
+            JSONObject jsonObject = new JSONObject(jsonString);
+            Row dataRow = sheet.createRow(rowIndex++);
+            colIndex = 0;
+            for (String key : firstObject.keySet()) {
+                Cell cell = dataRow.createCell(colIndex++);
+                cell.setCellValue(jsonObject.getString(key));
+            }
         }
 
-        public FileTime getModifiedTime() {
-            return modifiedTime;
+        // Auto-size columns for better readability
+        for (int i = 0; i < firstObject.length(); i++) {
+            sheet.autoSizeColumn(i);
         }
+
+        return workbook;
     }
 }
