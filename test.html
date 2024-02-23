@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki Page Background</title>
+    <style>
+        body {
+          margin: 0;
+          padding: 0;
+          height: 100vh;
+          background: linear-gradient(45deg, #ff7e5f, #feb47b);
+          background-size: 400% 400%;
+          animation: gradientAnimation 15s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+
+        /* You can add more styling for your wiki content here */
+        .wiki-content {
+          padding: 20px;
+          color: #fff;
+          text-align: center;
+          font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+<div class="wiki-content">
+    <h1>Welcome to Our Wiki Page</h1>
+    <p>This is where you can find all the information you need!</p>
+</div>
+</body>
+</html>
